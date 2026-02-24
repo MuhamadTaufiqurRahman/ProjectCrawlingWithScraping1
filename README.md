@@ -14,13 +14,14 @@ This scraper supports:
 * Dynamic content scraping using Selenium
 * Parallel scraping using multi-threading
 * Automatic progress saving
-* Modular and maintainable architecture
+* Class-based modular and maintainable architecture
 
 ---
 
 ## Features
 
 * Scrapes product listing pages with pagination
+
 * Extracts detailed product information:
 
   * URL
@@ -29,10 +30,16 @@ This scraper supports:
   * Specifications
   * Release year
   * Description
+
 * Uses headless browser for automation
+
 * Multi-threaded scraping for improved performance
+
 * Saves results in JSON format
-* Modular structure for easy maintenance
+
+* Class-based architecture for scalability
+
+* Easily extendable to support multiple websites
 
 ---
 
@@ -61,13 +68,49 @@ This scraper supports:
 ```
 scraper_project/
 │
-├── main.py              # Entry point
-├── config.py            # Configuration
-├── driver.py            # Selenium driver setup
-├── scraper.py           # Product scraper logic
-├── url_collector.py     # Collect product URLs
-├── hasil.json           # Output file
-└── requirements.txt     # Dependencies
+├── main.py                      # Entry point
+├── hasil.json                   # Output file
+├── requirements.txt            # Dependencies
+│
+└── scrapers/
+    ├── base_scraper.py         # Base scraper class (shared functionality)
+    └── aristo_scraper.py       # Aristohk scraper implementation
+```
+
+---
+
+## Architecture
+
+This project uses a class-based scraper architecture for better scalability and maintainability.
+
+### BaseScraper
+
+Provides reusable core functionality:
+
+* Selenium WebDriver setup
+* Progress saving
+* Base scraper structure
+* Shared configuration handling
+
+### AristoScraper
+
+Implements Aristohk-specific scraping logic:
+
+* Product URL collection
+* Product detail extraction
+* Pagination handling
+* Multi-threaded scraping
+
+This architecture allows easy expansion to support additional websites by creating new scraper classes.
+
+Example:
+
+```
+scrapers/
+├── base_scraper.py
+├── aristo_scraper.py
+├── watchtrader_scraper.py
+└── amazon_scraper.py
 ```
 
 ---
@@ -166,20 +209,19 @@ Example:
 
 ## Configuration
 
-You can modify settings in:
+You can modify scraper settings inside:
 
 ```
-config.py
+scrapers/aristo_scraper.py
 ```
 
 Example:
 
 ```
-BASE_URL = 'https://aristohk.com/new-watch'
-START_PAGE = 1
-MAX_PAGES = 5
-MAX_WORKERS = 3
-JSON_FILE = 'hasil.json'
+self.start_page = 1
+self.max_pages = 5
+self.max_workers = 3
+self.json_file = "hasil.json"
 ```
 
 ---
@@ -191,7 +233,7 @@ JSON_FILE = 'hasil.json'
 3. Render JavaScript content
 4. Extract data using BeautifulSoup
 5. Save data into JSON file
-6. Run scraping concurrently for better performance
+6. Run scraping concurrently using ThreadPoolExecutor
 
 ---
 
@@ -208,13 +250,36 @@ JSON_FILE = 'hasil.json'
 
 Supports parallel scraping using ThreadPoolExecutor.
 
-Default:
+Default configuration:
 
 ```
 3 concurrent browser instances
 ```
 
-Can be configured in config.py.
+Performance depends on:
+
+* CPU cores
+* RAM availability
+* Internet speed
+
+---
+
+## Scalability
+
+This scraper is designed with scalability in mind.
+
+You can easily add support for new websites by creating new scraper classes:
+
+Example:
+
+```
+class WatchTraderScraper(BaseScraper):
+    def get_product_urls_from_page(self, page_url):
+        pass
+
+    def scrape_product(self, url):
+        pass
+```
 
 ---
 
@@ -222,4 +287,6 @@ Can be configured in config.py.
 
 * Uses headless Chrome for automation
 * Automatically saves progress every 5 products
-* Designed for maintainability and scalability
+* Uses class-based architecture for maintainability
+* Designed for scalability and production use
+* Easy to extend for scraping multiple websites
