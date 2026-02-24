@@ -1,15 +1,16 @@
-import time
-import re
-import requests
-from bs4 import BeautifulSoup
-from selenium.webdriver.common.by import By
-from concurrent.futures import ThreadPoolExecutor, as_completed
+import time     # delay agar tidak kena block
+import re       # manipulasi text dengan regex (ambil angka dari harga)
+import requests         # ambil HTML halaman list produk
+from bs4 import BeautifulSoup       # parsing HTML
+from selenium.webdriver.common.by import By 
+from concurrent.futures import ThreadPoolExecutor, as_completed         # scraping paralel (multi-thread)
 
-from scrapers.base_scraper import BaseScraper
+from scrapers.base_scraper import BaseScraper 
 
 
 class WatchesTraderScraper(BaseScraper):
 
+    # kontruksi
     def __init__(self):
 
         super().__init__(
@@ -17,11 +18,12 @@ class WatchesTraderScraper(BaseScraper):
             json_file="dataScraping_watchestrader.json"
         )
 
-        self.start_page = 1
-        self.max_pages = 3
-        self.max_workers = 3
+        self.start_page = 1             # set halaman awal
+        self.max_pages = 3              # set Max Halaman
+        self.max_workers = 3            # set jumlah tugas per eksekusi
 
 
+    # mengambil semua URL produk dari halaman list
     def get_product_urls_from_page(self, page_url):
 
         try:
@@ -32,6 +34,7 @@ class WatchesTraderScraper(BaseScraper):
 
             soup = BeautifulSoup(response.text, "html.parser")
 
+            # cari semua link produk
             links = soup.find_all(
                 "a",
                 class_="border-[#eee] border p-3"
@@ -39,17 +42,19 @@ class WatchesTraderScraper(BaseScraper):
 
             urls = []
 
-            for link in links:
+            for link in links: # loop setiap link
 
+                # ambil href
                 url = link.get("href")
 
                 if url:
 
+                    # ubah jadi full URL
                     if not url.startswith("http"):
 
                         url = "https://watchestrader.id" + url
 
-                    urls.append(url)
+                    urls.append(url)    # simpan ke list (urls)
 
             print(f"Ditemukan {len(urls)} produk")
 
@@ -62,6 +67,7 @@ class WatchesTraderScraper(BaseScraper):
             return []
 
 
+    # method scrape product
     def scrape_product(self, url):
 
         print(f"\nScraping: {url}")
@@ -70,16 +76,18 @@ class WatchesTraderScraper(BaseScraper):
 
         try:
 
-            driver.get(url)
+            driver.get(url)         # pergi ke URL
 
             time.sleep(2)
 
+            # scroll sedikit
             driver.execute_script(
                 "window.scrollTo(0, 500);"
             )
 
             time.sleep(0.5)
 
+            # klik tab Specification dan History
             for tab_name in ["SPECIFICATION", "HISTORY"]:
 
                 try:
@@ -114,17 +122,20 @@ class WatchesTraderScraper(BaseScraper):
 
                     pass
 
+            # scroll sampai bawah
             driver.execute_script(
                 "window.scrollTo(0, document.body.scrollHeight);"
             )
 
             time.sleep(1)
 
+            # ambil HTML
             soup = BeautifulSoup(
                 driver.page_source,
                 "html.parser"
             )
 
+            # buat struktur data (Template output)
             data = {
 
                 "url": url,
@@ -139,17 +150,20 @@ class WatchesTraderScraper(BaseScraper):
                 "description": None,
             }
 
+            # ambil title
             title = soup.find("h1")
 
             if title:
 
                 data["title"] = title.text.strip()
 
+            # ambil harga
             price = soup.find(
                 "h4",
                 class_="text-xl font-semibold"
             )
 
+            # rubah harga String to Int
             if price:
 
                 price_int = re.sub(
@@ -162,11 +176,13 @@ class WatchesTraderScraper(BaseScraper):
 
                     data["price"] = int(price_int)
 
+            # ambil semua row info
             rows = soup.find_all(
                 "div",
                 class_=re.compile(r"py-2 flex gap-3")
             )
 
+            # loop semua row
             for row in rows:
 
                 label_p = (
@@ -181,6 +197,7 @@ class WatchesTraderScraper(BaseScraper):
 
                     continue
 
+                # ambil data pada label (sku, brands, reference, dll)
                 label = label_p.text.strip()
 
                 all_p = row.find_all("p")
@@ -213,6 +230,7 @@ class WatchesTraderScraper(BaseScraper):
 
                         data["location"] = value
 
+            # ambil description
             desc = soup.find(
                 "div",
                 class_="text-[#6A6A6A]"
@@ -233,13 +251,15 @@ class WatchesTraderScraper(BaseScraper):
 
         print("\n=== WatchesTrader Scraper ===")
 
+        # loop tiap page
         for page in range(
             self.start_page,
             self.start_page + self.max_pages
         ):
 
-            page_url = f"{self.base_url}?page={page}"
+            page_url = f"{self.base_url}?page={page}"       # buat url halaman
 
+            # ambil url produk dan simpan ke list utama (urls)
             urls = self.get_product_urls_from_page(
                 page_url
             )
@@ -256,6 +276,7 @@ class WatchesTraderScraper(BaseScraper):
             f"Total URL: {len(self.all_product_urls)}"
         )
 
+        # jalankan scraping paralel
         with ThreadPoolExecutor(
             max_workers=self.max_workers
         ) as executor:
@@ -272,6 +293,7 @@ class WatchesTraderScraper(BaseScraper):
 
             for future in as_completed(futures):
 
+                # ambil hasil
                 result = future.result()
 
                 if result:
@@ -282,6 +304,7 @@ class WatchesTraderScraper(BaseScraper):
 
                         self.save_progress()
 
+        # final save
         self.save_progress()
 
         print("WatchesTrader selesai")

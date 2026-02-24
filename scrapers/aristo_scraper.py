@@ -10,6 +10,7 @@ from scrapers.base_scraper import BaseScraper
 
 class AristoScraper(BaseScraper):
 
+    # konfigurasi
     def __init__(self):
 
         super().__init__(
@@ -22,23 +23,24 @@ class AristoScraper(BaseScraper):
         self.max_workers = 3
 
 
+    # mengambil semua URL produk dari 1 halaman pagination.
     def get_product_urls_from_page(self, page_url):
 
         try:
 
             print(f"Mengambil URL dari: {page_url}")
 
-            response = requests.get(page_url)
+            response = requests.get(page_url) # request halaman
 
-            soup = BeautifulSoup(response.text, "html.parser")
+            soup = BeautifulSoup(response.text, "html.parser") # parse HTML
 
-            products = soup.select("div.my-12.grid > div.flex.flex-col")
+            products = soup.select("div.my-12.grid > div.flex.flex-col") # ambil semua card produk
 
             urls = []
 
             for product in products:
 
-                link = product.find("a", href=True)
+                link = product.find("a", href=True) # ambil link produk.
 
                 if not link:
                     continue
@@ -63,29 +65,32 @@ class AristoScraper(BaseScraper):
             return []
 
 
+    # scrape detail dari halaman produk.
     def scrape_product(self, url):
 
         print(f"\nScraping: {url}")
 
-        driver = self.setup_driver()
+        driver = self.setup_driver() # buka browser
 
         try:
 
-            driver.get(url)
+            driver.get(url) # buka link
 
             time.sleep(2)
 
-            driver.execute_script("window.scrollTo(0, 500);")
+            driver.execute_script("window.scrollTo(0, 500);") #scroll
 
             time.sleep(1)
 
             try:
 
+                # cari tombol / tab description
                 desc_button = driver.find_element(
                     By.XPATH,
                     "//button[normalize-space()='Description']"
                 )
 
+                # klik tombol / tab description
                 driver.execute_script(
                     "arguments[0].click();",
                     desc_button
@@ -99,17 +104,20 @@ class AristoScraper(BaseScraper):
 
                 print("Tab Description tidak ditemukan")
 
+            # scroll
             driver.execute_script(
                 "window.scrollTo(0, document.body.scrollHeight);"
             )
 
             time.sleep(1)
 
+            # parse HTML
             soup = BeautifulSoup(
                 driver.page_source,
                 "html.parser"
             )
 
+            # buat struktur data
             data = {
                 "url": url,
                 "title": None,
@@ -117,6 +125,7 @@ class AristoScraper(BaseScraper):
                 "description": None
             }
 
+            # ambil title
             title = soup.find("h1")
 
             if title:
@@ -125,6 +134,7 @@ class AristoScraper(BaseScraper):
 
                 print("Title:", data["title"])
 
+            # ambil price
             rows = soup.select("div.flex.items-center")
 
             for row in rows:
@@ -154,6 +164,7 @@ class AristoScraper(BaseScraper):
 
                     data[key] = value
 
+            # ambil detailed specs release_year, model, dll
             sections = soup.select("div.grid.grid-cols-6")
 
             for section in sections:
@@ -186,6 +197,7 @@ class AristoScraper(BaseScraper):
 
                         pass
 
+            # ambil description
             desc = soup.select_one(
                 "div[role='tabpanel'] div.py-4"
             )
@@ -205,6 +217,7 @@ class AristoScraper(BaseScraper):
 
         print("Memulai Aristo Scraper")
 
+        # loop pagination
         for page in range(
             self.start_page,
             self.start_page + self.max_pages
@@ -214,6 +227,7 @@ class AristoScraper(BaseScraper):
 
             page_url = f"{self.base_url}?page={page}"
 
+            # ambil semua URL produk
             urls = self.get_product_urls_from_page(page_url)
 
             if not urls:
@@ -225,12 +239,14 @@ class AristoScraper(BaseScraper):
 
         print(f"\nTotal URL: {len(self.all_product_urls)}")
 
+        # scrape paralel
         with ThreadPoolExecutor(
             max_workers=self.max_workers
         ) as executor:
 
             futures = {
 
+                # jalankan scrape
                 executor.submit(
                     self.scrape_product,
                     url
@@ -245,15 +261,18 @@ class AristoScraper(BaseScraper):
 
                 if result:
 
+                    # simpan hasil
                     self.all_products.append(result)
 
                     print("Success:",
                           result.get("title"))
 
+                    # autosave tiap 5 produk
                     if len(self.all_products) % 5 == 0:
 
                         self.save_progress()
 
+        # save final
         self.save_progress()
 
         print("Scraping selesai")

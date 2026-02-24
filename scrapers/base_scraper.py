@@ -7,13 +7,13 @@ from selenium.webdriver.chrome.options import Options
 
 class BaseScraper:
 
-    def __init__(self, base_url, json_file="hasil.json"):
+    def __init__(self, base_url, json_file):
 
-        self.base_url = base_url
-        self.json_file = json_file
+        self.base_url = base_url # simpan base URL
+        self.json_file = json_file # simpan nama file output
 
-        self.all_product_urls = []
-        self.all_products = []
+        self.all_product_urls = [] # list menyimpan URL produk
+        self.all_products = [] # list menyimpan hasil scraping (data)
 
         # Nonaktifkan proxy
         os.environ['HTTP_PROXY'] = ''
@@ -21,18 +21,21 @@ class BaseScraper:
         os.environ['NO_PROXY'] = '*'
 
 
+    # membuat dan mengembalikan Selenium Chrome driver.
     def setup_driver(self):
 
-        chrome_options = Options()
+        chrome_options = Options() # buat object option
 
-        chrome_options.add_argument('--headless')
-        chrome_options.add_argument('--no-proxy-server')
-        chrome_options.add_argument('--window-size=1920,1080')
-        chrome_options.add_argument('--disable-gpu')
+        chrome_options.add_argument('--headless') # jalankan tanpa gui
+        chrome_options.add_argument('--no-proxy-server') # nonaktifkan proxy
+        chrome_options.add_argument('--window-size=1920,1080') #set ukuran window
+        
+        # optimasi performa
+        chrome_options.add_argument('--disable-gpu') 
         chrome_options.add_argument('--disable-dev-shm-usage')
         chrome_options.add_argument('--no-sandbox')
 
-        driver = webdriver.Chrome(options=chrome_options)
+        driver = webdriver.Chrome(options=chrome_options) # buat driver chrome
 
         return driver
 

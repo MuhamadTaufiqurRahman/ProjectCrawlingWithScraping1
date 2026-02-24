@@ -73,8 +73,9 @@ scraper_project/
 ├── requirements.txt            # Dependencies
 │
 └── scrapers/
-    ├── base_scraper.py         # Base scraper class (shared functionality)
-    └── aristo_scraper.py       # Aristohk scraper implementation
+    ├── base_scraper.py               # Base scraper class (shared functionality)
+    ├── aristo_scraper.py             # Aristohk scraper implementation
+    └── watchestrader_scraper.py      # Watchestrader scraper implementation
 ```
 
 ---
