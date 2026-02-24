@@ -1,4 +1,4 @@
-# Web Scraper – Aristohk Watch Product Scraper
+# Web Scraper – Watch Product Scraper
 
 ## Overview
 
@@ -59,7 +59,6 @@ This scraper supports:
 **Tools**
 
 * Google Chrome
-* ChromeDriver
 
 ---
 
@@ -139,22 +138,6 @@ python --version
 Download and install:
 
 https://www.google.com/chrome/
-
----
-
-### 3. Install ChromeDriver
-
-Download version matching your Chrome browser:
-
-https://chromedriver.chromium.org/downloads
-
-Add ChromeDriver to:
-
-```
-C:\Windows\
-```
-
-or project folder.
 
 ---
 
