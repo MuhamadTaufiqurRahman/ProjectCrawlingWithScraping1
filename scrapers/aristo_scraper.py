@@ -14,7 +14,7 @@ class AristoScraper(BaseScraper):
 
         super().__init__(
             base_url="https://aristohk.com/new-watch",
-            json_file="hasil.json"
+            json_file="dataScraping_aristohk.json"
         )
 
         self.start_page = 1
