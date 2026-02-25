@@ -3,6 +3,7 @@ import sys # Import module sys untuk membaca argument dari command line.
 # Import class scraper yang sudah di buat.
 from scrapers.aristo_scraper import AristoScraper
 from scrapers.watchestrader_scraper import WatchesTraderScraper
+from scrapers.luxehouze_scraper import LuxehouzeScraper
 
 # function utama pengontrol scraper
 def main():
@@ -12,6 +13,7 @@ def main():
         print("Usage:")
         print("python3 main.py aristo")
         print("python3 main.py watches")
+        print("python3 main.py luxehouze")
         print("python3 main.py all")
         return
 
@@ -25,9 +27,13 @@ def main():
     elif target == "watches":
         WatchesTraderScraper().run()
 
+    elif target == "luxehouze":
+        LuxehouzeScraper().run()
+
     elif target == "all":
         AristoScraper().run()
         WatchesTraderScraper().run()
+        LuxehouzeScraper().run()
 
     else:
         print("Target tidak dikenal")

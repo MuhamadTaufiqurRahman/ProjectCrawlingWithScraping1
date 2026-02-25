@@ -5,6 +5,8 @@
 This project is an automated web scraper built using *Python* to extract watch product data from the Aristohk website:
 
 https://aristohk.com/new-watch
+https://watchestrader.id/
+https://luxehouze.com/id/en/watch/category/all-watches
 
 The scraper collects product information including title, price, specifications, release year, and description, then saves the data into a structured JSON file.
 
@@ -60,23 +62,6 @@ This scraper supports:
 
 * Google Chrome
 * ChromeDriver
-
----
-
-## Project Structure
-
-```
-scraper_project/
-│
-├── main.py                      # Entry point
-├── hasil.json                   # Output file
-├── requirements.txt            # Dependencies
-│
-└── scrapers/
-    ├── base_scraper.py               # Base scraper class (shared functionality)
-    ├── aristo_scraper.py             # Aristohk scraper implementation
-    └── watchestrader_scraper.py      # Watchestrader scraper implementation
-```
 
 ---
 
