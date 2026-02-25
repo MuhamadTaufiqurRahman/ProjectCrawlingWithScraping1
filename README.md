@@ -8,6 +8,7 @@ https://aristohk.com/new-watch
 https://watchestrader.id/
 https://luxehouze.com/id/en/watch/category/all-watches
 
+
 The scraper collects product information including title, price, specifications, release year, and description, then saves the data into a structured JSON file.
 
 This scraper supports:
