@@ -20,7 +20,7 @@ class LuxehouzeScraper(BaseScraper):
 
         self.max_scroll = 1
         self.scroll_pause = 2
-        self.max_workers = 5
+        self.max_workers = 3
 
 
     # ambil semua URL produk via infinite scroll
@@ -168,9 +168,10 @@ class LuxehouzeScraper(BaseScraper):
             # struktur data
             # =====================
             data = {
-                "url": url,
+                "url_Product": url,
                 "title": None,
-                "price": None,
+                "price_IDR": None,
+                "price_USD": None,
                 "description": None
             }
 
@@ -190,33 +191,29 @@ class LuxehouzeScraper(BaseScraper):
             # =====================
             # ambil price
             # =====================
-            data["price"] = None
-            data["original_price"] = None
+            data["price_IDR"] = None
 
             price_spans = soup.find_all("span")
 
             for span in price_spans:
-
                 text = span.get_text(strip=True)
-
+                
                 if not text.startswith("Rp"):
                     continue
-
+                
                 price_int = re.sub(r"[^\d]", "", text)
-
+                
                 if not price_int:
                     continue
-
+                
                 price_int = int(price_int)
-
+                
                 classes = span.get("class", [])
-
-                if "line-through" in classes:
-                    data["original_price"] = price_int
-                else:
-                    # ambil harga aktif pertama saja
-                    if data["price"] is None:
-                        data["price"] = price_int
+                
+                # Hanya ambil harga yang tidak memiliki class "line-through"
+                if "line-through" not in classes:
+                    data["price_IDR"] = price_int
+                    break  # Berhenti setelah menemukan harga pertama yang valid
 
 
             # scroll sedikit
@@ -256,6 +253,29 @@ class LuxehouzeScraper(BaseScraper):
                 data["description"] = desc.get_text(
                     strip=True
                 )
+
+                def extract_reference(title):
+
+                    if not title:
+                        return None
+
+                    patterns = [
+                        r"\bRM\s?\d{2,3}(-\d{2})?\b",     # Richard Mille
+                        r"\b\d{4,5}[A-Z]-\d{3}\b",        # 5270P-001
+                        r"\b\d{3,5}/[A-Z0-9\-]+\b",       # 5712/1R-001
+                        r"\b\d{5,6}[A-Z]{0,3}\b",         # 126610LN
+                        r"\b\d{5,}\.[A-Z0-9\.]+\b",       # 15500ST.OO.1220ST.03
+                        r"\b\d{2,3}\.[A-Z]{2,}\b"
+                    ]
+
+                    for pattern in patterns:
+                        match = re.search(pattern, title)
+                        if match:
+                            return match.group()
+
+                    return None
+                
+                data["reference_number"] = extract_reference(data["title"])
 
 
             print("Success:", data["title"])

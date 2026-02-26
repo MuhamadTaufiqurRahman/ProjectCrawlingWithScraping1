@@ -24,18 +24,38 @@ class BaseScraper:
     # membuat dan mengembalikan Selenium Chrome driver.
     def setup_driver(self):
 
-        chrome_options = Options() # buat object option
+        chrome_options = Options()
 
-        chrome_options.add_argument('--headless') # jalankan tanpa gui
-        chrome_options.add_argument('--no-proxy-server') # nonaktifkan proxy
-        chrome_options.add_argument('--window-size=1920,1080') #set ukuran window
-        
-        # optimasi performa
-        chrome_options.add_argument('--disable-gpu') 
-        chrome_options.add_argument('--disable-dev-shm-usage')
-        chrome_options.add_argument('--no-sandbox')
+        # Gunakan headless baru (lebih natural)
+        chrome_options.add_argument("--headless=new")
 
-        driver = webdriver.Chrome(options=chrome_options) # buat driver chrome
+        chrome_options.add_argument("--window-size=1920,1080")
+        chrome_options.add_argument("--disable-gpu")
+        chrome_options.add_argument("--disable-dev-shm-usage")
+        chrome_options.add_argument("--no-sandbox")
+        chrome_options.add_argument("--no-proxy-server")
+
+        # 🔥 HILANGKAN AUTOMATION FLAG
+        chrome_options.add_argument("--disable-blink-features=AutomationControlled")
+        chrome_options.add_experimental_option("excludeSwitches", ["enable-automation"])
+        chrome_options.add_experimental_option("useAutomationExtension", False)
+
+        # 🔥 RANDOM USER AGENT
+        import random
+
+        user_agents = [
+            "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36",
+            "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/119.0.0.0 Safari/537.36",
+        ]
+
+        chrome_options.add_argument(f"user-agent={random.choice(user_agents)}")
+
+        driver = webdriver.Chrome(options=chrome_options)
+
+        # 🔥 REMOVE navigator.webdriver
+        driver.execute_script(
+            "Object.defineProperty(navigator, 'webdriver', {get: () => undefined})"
+        )
 
         return driver
 
