@@ -23,40 +23,39 @@ class BaseScraper:
 
     # membuat dan mengembalikan Selenium Chrome driver.
     def setup_driver(self):
-
         chrome_options = Options()
 
-        # Gunakan headless baru (lebih natural)
+        # Gunakan headless baru
         chrome_options.add_argument("--headless=new")
-
-        chrome_options.add_argument("--window-size=1920,1080")
+        chrome_options.add_argument("--window-size=1280,720")  # 🔴 Lebih kecil
         chrome_options.add_argument("--disable-gpu")
         chrome_options.add_argument("--disable-dev-shm-usage")
         chrome_options.add_argument("--no-sandbox")
         chrome_options.add_argument("--no-proxy-server")
-
-        # 🔥 HILANGKAN AUTOMATION FLAG
         chrome_options.add_argument("--disable-blink-features=AutomationControlled")
+        
+        # 🔴 TAMBAHKAN UNTUK HEMAT MEMORY
+        chrome_options.add_argument("--memory-pressure-off")
+        chrome_options.add_argument("--disable-software-rasterizer")
+        chrome_options.add_argument("--disable-plugins")
+        chrome_options.add_argument("--disable-images")  # Matikan gambar
+        chrome_options.add_argument("--js-flags=--max-old-space-size=512")  # Batasi 512MB
+        
         chrome_options.add_experimental_option("excludeSwitches", ["enable-automation"])
         chrome_options.add_experimental_option("useAutomationExtension", False)
 
-        # 🔥 RANDOM USER AGENT
         import random
-
         user_agents = [
             "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36",
             "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/119.0.0.0 Safari/537.36",
         ]
-
         chrome_options.add_argument(f"user-agent={random.choice(user_agents)}")
 
         driver = webdriver.Chrome(options=chrome_options)
-
-        # 🔥 REMOVE navigator.webdriver
         driver.execute_script(
             "Object.defineProperty(navigator, 'webdriver', {get: () => undefined})"
         )
-
+        
         return driver
 
 
@@ -79,3 +78,9 @@ class BaseScraper:
     def scrape_product(self, url):
 
         raise NotImplementedError
+    
+    def save_json(self, data):
+        with open(self.json_file, 'w', encoding='utf-8') as f:
+            json.dump(data, f, indent=2, ensure_ascii=False)
+
+        print(f"Saved: {len(data)} products")
