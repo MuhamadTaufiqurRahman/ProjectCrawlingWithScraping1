@@ -148,6 +148,7 @@ pip install selenium beautifulsoup4 requests
 Run the scraper:
 
 ```
+mkdir -p logs && nohup python main.py luxehouze > logs/scraper_$(date +%d-%m-%Y_%H-%M-%S).log 2>&1 &
 python main.py
 ```
 
